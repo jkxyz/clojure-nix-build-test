@@ -17,11 +17,13 @@
           pname = "example";
           version = "0.0.1";
 
+          src = ./.;
+
           buildInputs = [ pkgs.clojure pkgs.makeWrapper ];
 
           buildPhase = ''
             mkdir -p classes
-            clojure -Scp "${classpath}:src" -e "(compile 'example.main)"
+            HOME=. clojure -Scp "${classpath}:src" -e "(compile 'example.main)"
           '';
 
           dontFixup = true;
@@ -40,6 +42,8 @@
           buildInputs = [ clj2nix.packages.${system}.clj2nix ];
         };
 
-        defaultPackage = example;
+        packages = { example = example; };
+
+        defaultPackage = self.packages.${system}.example;
       });
 }
