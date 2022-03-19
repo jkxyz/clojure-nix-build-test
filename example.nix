@@ -1,4 +1,4 @@
-{ stdenv, clojure, jdk, makeWrapper, callPackage }:
+{ stdenv, jdk, makeWrapper, callPackage }:
 
 let
   deps = callPackage (import ./deps.nix) { };
@@ -9,20 +9,20 @@ in stdenv.mkDerivation {
 
   src = ./.;
 
-  buildInputs = [ clojure makeWrapper ];
+  buildInputs = [ jdk makeWrapper ];
 
   buildPhase = ''
-    mkdir -p classes
-    HOME=. clojure -Srepro -Scp "${classpath}:src" -e "(compile 'example.main)"
+    mkdir --parents classes
+    java --class-path "${classpath}:src" clojure.main --eval "(compile 'example.main)"
   '';
 
   dontFixup = true;
 
   installPhase = ''
-    mkdir -p $out/{bin,lib}
-    cp -rT classes $out/lib
+    mkdir --parents $out/{bin,lib}
+    cp --recursive --no-target-directory classes $out/lib
     makeWrapper ${jdk}/bin/java $out/bin/example \
-      --add-flags "-cp" \
+      --add-flags "--class-path" \
       --add-flags "${classpath}:$out/lib" \
       --add-flags "example.main"
   '';

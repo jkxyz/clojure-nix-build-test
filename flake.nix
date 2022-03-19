@@ -20,14 +20,10 @@
       in {
         devShell = pkgs.mkShell {
           buildInputs =
-            [ clj2nix.packages.${system}.clj2nix clojure-latest-jdk ];
+            [ clj2nix.packages.${system}.clj2nix clojure-latest-jdk pkgs.jdk ];
         };
 
-        packages = {
-          example = pkgs.callPackage (import ./example.nix) {
-            clojure = clojure-latest-jdk;
-          };
-        };
+        packages = { example = pkgs.callPackage (import ./example.nix) { }; };
 
         defaultPackage = self.packages.${system}.example;
       });
