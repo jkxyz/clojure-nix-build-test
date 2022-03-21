@@ -12,18 +12,27 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-
-        clojure-latest-jdk =
-          pkgs.callPackage "${nixpkgs}/pkgs/development/interpreters/clojure" {
-            jdk = pkgs.jdk;
-          };
+        clojure-latest-jdk = pkgs.clojure.override { jdk = pkgs.jdk; };
       in {
         devShell = pkgs.mkShell {
           buildInputs =
             [ clj2nix.packages.${system}.clj2nix clojure-latest-jdk pkgs.jdk ];
         };
 
-        packages = { example = pkgs.callPackage (import ./example.nix) { }; };
+        packages =
+          let jre = pkgs.jre_minimal.override { jdk = pkgs.jdk17_headless; };
+          in rec {
+            example = pkgs.callPackage (import ./example.nix) { jre = jre; };
+
+            exampleDockerImage = pkgs.dockerTools.buildImage {
+              name = "example";
+              fromImage = pkgs.dockerTools.buildImage {
+                name = "example-base";
+                contents = [ jre ];
+              };
+              config = { Cmd = [ "${example}/bin/example" ]; };
+            };
+          };
 
         defaultPackage = self.packages.${system}.example;
       });
