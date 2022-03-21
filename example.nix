@@ -1,4 +1,4 @@
-{ stdenv, jdk, makeWrapper, callPackage }:
+{ stdenv, jdk, jre_minimal, makeWrapper, callPackage }:
 
 let
   deps = callPackage (import ./deps.nix) { };
@@ -21,7 +21,7 @@ in stdenv.mkDerivation {
   installPhase = ''
     mkdir --parents $out/{bin,lib}
     cp --recursive --no-target-directory classes $out/lib
-    makeWrapper ${jdk}/bin/java $out/bin/example \
+    makeWrapper ${jre_minimal}/bin/java $out/bin/example \
       --add-flags "--class-path" \
       --add-flags "${classpath}:$out/lib" \
       --add-flags "example.main"
